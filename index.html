@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Just For You 💖</title>
+  <style>
+    /* Reset */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{
+      font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      overflow:hidden;
+      background: linear-gradient(120deg,#0f2027 0%, #203a43 50%, #2c5364 100%);
+      display:flex;align-items:center;justify-content:center;
+    }
+
+    /* animated floating hearts background */
+    .bg {
+      position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+    }
+    .heart{
+      position:absolute;bottom:-10vh;width:2.4rem;height:2.4rem;
+      transform:translateX(-50%) rotate(45deg);
+      background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 40%), linear-gradient(135deg,#ff6b81,#ff9a9e);
+      border-radius:0.4rem 0.4rem 0 0;
+      opacity:0.9;
+      animation:floatUp linear infinite;
+      box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    }
+    .heart:before,.heart:after{
+      content:'';position:absolute;width:100%;height:100%;border-radius:50%;background:inherit;top:-50%;left:0;
+    }
+    .heart:after{left:-50%;top:0}
+
+    @keyframes floatUp{
+      0%{transform:translateY(0) translateX(var(--x)) rotate(var(--r));opacity:0}
+      10%{opacity:1}
+      100%{transform:translateY(-140vh) translateX(calc(var(--x) + 40px)) rotate(calc(var(--r) + 360deg));opacity:0}
+    }
+
+    /* main card */
+    .card{
+      position:relative;z-index:2;width:90%;max-width:760px;padding:40px;border-radius:18px;
+      backdrop-filter: blur(8px) saturate(120%);
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+      text-align:center;color:#fff;
+    }
+
+    .title{
+      font-size:clamp(28px,5vw,46px);letter-spacing:1px;margin-bottom:10px;font-weight:700;
+      text-shadow: 0 6px 22px rgba(0,0,0,0.45);
+    }
+    .sub{
+      font-size:clamp(18px,2.6vw,24px);opacity:0.95;margin-bottom:18px;font-weight:600;
+    }
+
+    .name-typing{
+      font-family: 'Great Vibes', cursive; font-size:clamp(36px,6vw,64px);display:inline-block;
+      letter-spacing:2px;
+      color:#ffd3e0;text-shadow: 0 8px 30px rgba(255,120,150,0.08);
+    }
+
+    .ilove{
+      margin-top:8px;font-size:clamp(20px,3vw,30px);font-weight:700;color:#fff;display:block;
+    }
+
+    /* typing cursor */
+    .cursor{display:inline-block;width:4px;height:1.1em;background:#fff;margin-left:8px;vertical-align:middle;animation:blink 1s steps(2) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    /* replay button */
+    .controls{margin-top:20px}
+    .btn{
+      background:transparent;border:1px solid rgba(255,255,255,0.18);padding:10px 16px;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;backdrop-filter: blur(4px);
+    }
+    .credits{font-size:12px;margin-top:14px;opacity:0.7}
+
+    /* small responsive tweaks */
+    @media (max-width:420px){.card{padding:22px;border-radius:14px}}
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <main class="card" role="main">
+    <div class="title">Special Message</div>
+    <div class="sub">Because some things should be said simply</div>
+
+    <div id="display">
+      <span class="name-typing" id="nameEl">...</span><span class="cursor" id="cursorEl"></span>
+      <div class="ilove" id="iloveEl">I LOVE U</div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="changeBtn">Change name</button>
+      <button class="btn" id="replayBtn" style="margin-left:10px">Replay</button>
+    </div>
+    <div class="credits">Tip: Click "Change name" to set a different name.</div>
+  </main>
+
+  <script>
+    // GENERATE BACKGROUND HEARTS
+    const bg = document.querySelector('.bg');
+    const heartCount = 16;
+    for(let i=0;i<heartCount;i++){
+      const h = document.createElement('div');
+      h.className='heart';
+      // random positions and durations
+      const left = Math.random()*100 + '%';
+      h.style.left = left;
+      h.style.setProperty('--x', (Math.random()*80-40)+'px');
+      h.style.setProperty('--r', (Math.random()*40-20)+'deg');
+      h.style.animationDuration = (10 + Math.random()*12)+'s';
+      h.style.opacity = (0.4 + Math.random()*0.7);
+      h.style.transform = `translateX(-50%) rotate(${Math.random()*360}deg)`;
+      bg.appendChild(h);
+    }
+
+    // TYPING EFFECT
+    const nameEl = document.getElementById('nameEl');
+    const cursorEl = document.getElementById('cursorEl');
+    const iloveEl = document.getElementById('iloveEl');
+
+    let fullName = '';
+
+    function typeText(targetEl, text, speed=90){
+      targetEl.textContent = '';
+      let i=0;
+      return new Promise(res=>{
+        const t = setInterval(()=>{
+          targetEl.textContent += text.charAt(i);
+          i++;
+          if(i>=text.length){ clearInterval(t); setTimeout(res,300); }
+        }, speed);
+      })
+    }
+
+    async function showName(name){
+      cursorEl.style.display='inline-block';
+      nameEl.textContent='';
+      await typeText(nameEl, name, 120);
+      cursorEl.style.display='none';
+      // little bounce pulse on I LOVE U
+      iloveEl.animate([{transform:'translateY(0)'},{transform:'translateY(-8px)'},{transform:'translateY(0)'}],{duration:800,iterations:2});
+    }
+
+    function askName(){
+      // prompt the user quickly. If user cancels or leaves blank, default to "Tanya"
+      const n = prompt('Enter the name to show (leave blank for default):','Tanya');
+      return (n && n.trim().length>0) ? n.trim() : 'Tanya';
+    }
+
+    // initial run on open
+    window.addEventListener('load', async ()=>{
+      fullName = askName();
+      await showName(fullName);
+    });
+
+    document.getElementById('changeBtn').addEventListener('click', async ()=>{
+      fullName = askName();
+      cursorEl.style.display='inline-block';
+      await showName(fullName);
+    });
+
+    document.getElementById('replayBtn').addEventListener('click', async ()=>{
+      cursorEl.style.display='inline-block';
+      await showName(fullName);
+    });
+  </script>
+</body>
+</html>
